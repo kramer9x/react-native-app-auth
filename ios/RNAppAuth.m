@@ -152,12 +152,18 @@ RCT_REMAP_METHOD(refresh,
                                    presentingViewController:appDelegate.window.rootViewController
                                                    callback:^(OIDAuthState *_Nullable authState,
                                                               NSError *_Nullable error) {
-                                                       if (authState) {
-                                                           resolve([self formatResponse:authState.lastTokenResponse]);
+                                                       if (
+                                                          [error code] == OIDErrorCodeUserCanceledAuthorizationFlow ||
+                                                          [error code] == OIDErrorCodeProgramCanceledAuthorizationFlow
+                                                       ) {
+                                                           reject(@"RNAppAuth Error", @"CANCELLED", error);
                                                        } else {
-                                                           reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                           if (authState) {
+                                                               resolve([self formatResponse:authState.lastTokenResponse]);
+                                                           } else {
+                                                               reject(@"RNAppAuth Error", [error localizedDescription], error);
+                                                           }
                                                        }
-                                                       
                                                    }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
 }
 
