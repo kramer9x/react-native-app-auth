@@ -17,13 +17,13 @@ export type BaseAuthConfiguration =
       serviceConfiguration?: ServiceConfiguration;
     };
 
-export type AuthConfiguration = BaseAuthConfiguration & {
+export interface AuthConfiguration extends BaseAuthConfiguration {
   clientSecret?: string;
   scopes: string[];
   redirectUrl: string;
   additionalParameters?: { [name: string]: string };
   dangerouslyAllowInsecureHttpRequests?: boolean;
-};
+}
 
 export interface AuthorizeResult {
   accessToken: string;
