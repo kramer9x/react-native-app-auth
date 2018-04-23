@@ -208,15 +208,17 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
         if (requestCode == 0 && data != null) {
 
-            if (resultCode == Activity.RESULT_CANCELED) {
-                promise.reject("CANCELLED");
-                return;
-            }
 
             AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             AuthorizationException exception = AuthorizationException.fromIntent(data);
             if (exception != null) {
-                promise.reject("RNAppAuth Error", "Failed to authenticate", exception);
+
+                if (resultCode == Activity.RESULT_CANCELED) {
+                    promise.reject("CANCELLED");
+                    return;
+                }
+
+                promise.reject("RNAppAuth Error", exception);
                 return;
             }
 
