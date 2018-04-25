@@ -241,19 +241,12 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         WritableMap map = tokenResponseToMap(resp);
                         authorizePromise.resolve(map);
                     } else {
-                        promise.reject("RNAppAuth Error", "Failed exchange token", ex);
+                        promise.reject("RNAppAuth Error", ex);
                     }
                 }
             };
 
-            if (this.clientSecret != null) {
-                ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
-                authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
-
-            } else {
-                authService.performTokenRequest(tokenRequest, tokenResponseCallback);
-            }
-
+            authService.performTokenRequest(tokenRequest, tokenResponseCallback);
         }
     }
 
