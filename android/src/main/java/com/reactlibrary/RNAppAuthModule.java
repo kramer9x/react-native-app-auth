@@ -1,6 +1,7 @@
 package com.reactlibrary;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -281,13 +282,36 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                         .setScope(scopesString);
 
         if (additionalParametersMap != null) {
+            // handle additional parameters separately to avoid exceptions from AppAuth
+            if (additionalParametersMap.containsKey("display")) {
+                authRequestBuilder.setDisplay(additionalParametersMap.get("display"));
+                additionalParametersMap.remove("display");
+            }
+            if (additionalParametersMap.containsKey("login_hint")) {
+                authRequestBuilder.setLoginHint(additionalParametersMap.get("login_hint"));
+                additionalParametersMap.remove("login_hint");
+            }
+            if (additionalParametersMap.containsKey("prompt")) {
+                authRequestBuilder.setPrompt(additionalParametersMap.get("prompt"));
+                additionalParametersMap.remove("prompt");
+            }
+
             authRequestBuilder.setAdditionalParameters(additionalParametersMap);
         }
 
         AuthorizationRequest authRequest = authRequestBuilder.build();
-        AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
-        Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
-        currentActivity.startActivityForResult(authIntent, 0);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            AuthorizationService authService = new AuthorizationService(context, appAuthConfiguration);
+            Intent authIntent = authService.getAuthorizationRequestIntent(authRequest);
+
+            currentActivity.startActivityForResult(authIntent, 0);
+        } else {
+            AuthorizationService authService = new AuthorizationService(currentActivity, appAuthConfiguration);
+            PendingIntent pendingIntent = currentActivity.createPendingResult(0, new Intent(), 0);
+
+            authService.performAuthorizationRequest(authRequest, pendingIntent);
+        }
     }
 
     /*
@@ -338,7 +362,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
 
         if (clientSecret != null) {
-            ClientAuthentication clientAuth = new ClientSecretBasic(this.clientSecret);
+            ClientAuthentication clientAuth = new ClientSecretBasic(clientSecret);
             authService.performTokenRequest(tokenRequest, clientAuth, tokenResponseCallback);
 
         } else {
