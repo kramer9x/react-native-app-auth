@@ -95,8 +95,8 @@ export const refresh = (
 };
 
 export const revoke = async (
-  { clientId, issuer, serviceConfiguration },
-  { tokenToRevoke, sendClientId = false }
+  { clientId, clientSecret, issuer, serviceConfiguration },
+  { tokenToRevoke, sendClientId = false, sendClientSecret = false }
 ) => {
   invariant(tokenToRevoke, 'Please include the token to revoke');
   validateClientId(clientId);
@@ -123,12 +123,17 @@ export const revoke = async (
     so defaulting to no client_id
     https://tools.ietf.org/html/rfc7009#section-2.1
   **/
+ 
+  const tokenParam = `token=${tokenToRevoke}`;
+  const clientIdParam = sendClientId ? `&client_id=${clientId}` : '';
+  const clientSecretParam = sendClientSecret ? `&client_secret=${clientSecret}` : '';
+
   return await fetch(revocationEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: `token=${tokenToRevoke}${sendClientId ? `&client_id=${clientId}` : ''}`,
+    body: `${tokenParam}${clientIdParam}${clientSecretParam}`,
   }).catch(error => {
     throw new Error('Failed to revoke token', error);
   });
